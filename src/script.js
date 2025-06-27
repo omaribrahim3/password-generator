@@ -63,33 +63,39 @@ clipboardEl.addEventListener('click', async () => {
 
 // Generate Password Function
 function generatePassword(lower, upper, number, symbol, length) {
-    // 1. Initialize password variable
-    let generatedPassword = '';
-    
-    // 2. Filter out unchecked types
-    const typesCount = lower + upper + number + symbol;
-    
-    // If no types are selected, return empty string
-    if(typesCount === 0) {
-        return '';
-    }
-    
-    // Create array of checked types
+    // Array of enabled generator functions
     const typesArr = [{lower}, {upper}, {number}, {symbol}]
         .filter(item => Object.values(item)[0]);
-    
-    // Create a loop to call generator function for each type
-    for(let i = 0; i < length; i += typesCount) {
-        typesArr.forEach(type => {
-            const funcName = Object.keys(type)[0];
-            generatedPassword += randomFunc[funcName]();
-        });
+
+    if(typesArr.length === 0) {
+        return '';
     }
-    
-    // Get the final password and trim it to the requested length
-    const finalPassword = generatedPassword.slice(0, length);
-    
-    return finalPassword;
+
+    let generatedPassword = '';
+
+    // Ensure at least one character from each selected type
+    typesArr.forEach(type => {
+        const funcName = Object.keys(type)[0];
+        generatedPassword += randomFunc[funcName]();
+    });
+
+    // Fill the remaining length with random characters
+    for(let i = generatedPassword.length; i < length; i++) {
+        const randomType = typesArr[Math.floor(Math.random() * typesArr.length)];
+        const funcName = Object.keys(randomType)[0];
+        generatedPassword += randomFunc[funcName]();
+    }
+
+    // Shuffle the resulting password to remove any predictable order
+    return shufflePassword(generatedPassword);
+}
+
+// Simple array shuffle for strings
+function shufflePassword(password) {
+    return password
+        .split('')
+        .sort(() => Math.random() - 0.5)
+        .join('');
 }
 
 // Generator Functions
